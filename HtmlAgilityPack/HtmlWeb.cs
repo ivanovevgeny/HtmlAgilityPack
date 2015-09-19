@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Security;
 using System.Security.Permissions;
@@ -1372,9 +1373,17 @@ namespace HtmlAgilityPack
 
 			bool html = IsHtmlContent(resp.ContentType);
 
-			Encoding respenc = !string.IsNullOrEmpty(resp.ContentEncoding)
-								   ? Encoding.GetEncoding(resp.ContentEncoding)
-								   : null;
+            Encoding respenc = null;
+            var isGZipEncoding = false;
+            if (!string.IsNullOrEmpty(resp.ContentEncoding))
+            {
+                isGZipEncoding = IsGZipEncoding(resp.ContentEncoding);
+                if (!isGZipEncoding)
+                {
+                    respenc = Encoding.GetEncoding(resp.ContentEncoding);
+                }
+            }
+
 			if (OverrideEncoding != null)
 				respenc = OverrideEncoding;
 
@@ -1394,7 +1403,16 @@ namespace HtmlAgilityPack
 				// this should *never* happen...
 				throw new HtmlWebException("Server has send a NotModifed code, without cache enabled.");
 			}
-			Stream s = resp.GetResponseStream();
+            Stream s;
+#if SILVERLIGHT || METRO || PocketPC || WINDOWS_PHONE
+            s = resp.GetResponseStream();
+#else
+            if (isGZipEncoding)
+                s = new GZipStream(resp.GetResponseStream(), CompressionMode.Decompress);
+            else
+                s = resp.GetResponseStream();
+#endif
+            
 			if (s != null)
 			{
 				if (UsingCache)
