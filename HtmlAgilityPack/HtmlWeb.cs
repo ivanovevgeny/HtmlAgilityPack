@@ -1261,7 +1261,9 @@ namespace HtmlAgilityPack
 			bool oldFile = false;
           
 			req = WebRequest.Create(uri) as HttpWebRequest;
-			req.Method = method;
+            req.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip;
+
+            req.Method = method;
 			req.UserAgent = UserAgent;
 			if (proxy != null)
 			{
@@ -1373,18 +1375,11 @@ namespace HtmlAgilityPack
 
 			bool html = IsHtmlContent(resp.ContentType);
 
-            Encoding respenc = null;
-            var isGZipEncoding = false;
-            if (!string.IsNullOrEmpty(resp.ContentEncoding))
-            {
-                isGZipEncoding = IsGZipEncoding(resp.ContentEncoding);
-                if (!isGZipEncoding)
-                {
-                    respenc = Encoding.GetEncoding(resp.ContentEncoding);
-                }
-            }
+            Encoding respenc = !string.IsNullOrEmpty(resp.ContentEncoding)
+                                    ? Encoding.GetEncoding(resp.ContentEncoding)
+                                    : null;
 
-			if (OverrideEncoding != null)
+            if (OverrideEncoding != null)
 				respenc = OverrideEncoding;
 
 			if (resp.StatusCode == HttpStatusCode.NotModified)
@@ -1403,17 +1398,9 @@ namespace HtmlAgilityPack
 				// this should *never* happen...
 				throw new HtmlWebException("Server has send a NotModifed code, without cache enabled.");
 			}
-            Stream s;
-#if SILVERLIGHT || METRO || PocketPC || WINDOWS_PHONE
-            s = resp.GetResponseStream();
-#else
-            if (isGZipEncoding)
-                s = new GZipStream(resp.GetResponseStream(), CompressionMode.Decompress);
-            else
-                s = resp.GetResponseStream();
-#endif
-            
-			if (s != null)
+            Stream s = resp.GetResponseStream();
+
+            if (s != null)
 			{
 				if (UsingCache)
 				{
