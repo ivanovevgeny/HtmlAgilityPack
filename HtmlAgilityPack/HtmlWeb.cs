@@ -1431,7 +1431,20 @@ namespace HtmlAgilityPack
 					        doc.Load(s, respenc);
 					    }
 					}
-				}
+                    // save raw text (not html content)
+                    else
+					{
+                        if (respenc == null)
+                        {
+                            doc.LoadRaw(s, true);
+                        }
+                        else
+                        {
+                            doc.LoadRaw(s, respenc);
+                        }
+
+                    }
+                }
 				resp.Close();
 			}
 			return resp.StatusCode;

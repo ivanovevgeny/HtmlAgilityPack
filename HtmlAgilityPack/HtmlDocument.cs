@@ -226,7 +226,16 @@ namespace HtmlAgilityPack
 			get { return _streamencoding; }
 		}
 
-		#endregion
+	    /// <summary>
+	    /// Return Raw response text. Method can be useful for get non xml structured text, i.e. json
+	    /// </summary>
+	    public string RawText
+	    {
+	        get { return Text; }
+	    }
+
+
+	    #endregion
 
 		#region Public Methods
 
@@ -537,13 +546,33 @@ namespace HtmlAgilityPack
 			Load(new StreamReader(stream, encoding));
 		}
 
-		/// <summary>
-		/// Loads an HTML document from a stream.
-		/// </summary>
-		/// <param name="stream">The input stream.</param>
-		/// <param name="encoding">The character encoding to use.</param>
-		/// <param name="detectEncodingFromByteOrderMarks">Indicates whether to look for byte order marks at the beginning of the stream.</param>
-		public void Load(Stream stream, Encoding encoding, bool detectEncodingFromByteOrderMarks)
+        /// <summary>
+        /// Loads an HTML document from a stream.
+        /// </summary>
+        /// <param name="stream">The input stream.</param>
+        /// <param name="detectEncodingFromByteOrderMarks">Indicates whether to look for byte order marks at the beginning of the stream.</param>
+        internal void LoadRaw(Stream stream, bool detectEncodingFromByteOrderMarks)
+        {
+            LoadRaw(new StreamReader(stream, detectEncodingFromByteOrderMarks));
+        }
+
+        /// <summary>
+        /// Loads non HTML document from a stream.
+        /// </summary>
+        /// <param name="stream">The input stream.</param>
+        /// <param name="encoding">The character encoding to use.</param>
+        internal void LoadRaw(Stream stream, Encoding encoding)
+        {
+            LoadRaw(new StreamReader(stream, encoding));
+        }
+
+        /// <summary>
+        /// Loads an HTML document from a stream.
+        /// </summary>
+        /// <param name="stream">The input stream.</param>
+        /// <param name="encoding">The character encoding to use.</param>
+        /// <param name="detectEncodingFromByteOrderMarks">Indicates whether to look for byte order marks at the beginning of the stream.</param>
+        public void Load(Stream stream, Encoding encoding, bool detectEncodingFromByteOrderMarks)
 		{
 			Load(new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks));
 		}
@@ -643,6 +672,43 @@ namespace HtmlAgilityPack
 
 			// we don't need this anymore
 			Openednodes.Clear();
+		}
+
+		/// <summary>
+		/// Loads non HTML document from the specified TextReader.
+		/// </summary>
+		/// <param name="reader">The TextReader used to feed the HTML data into the document. May not be null.</param>
+		internal void LoadRaw(TextReader reader)
+		{
+			// all Load methods pass down to this one
+			if (reader == null)
+				throw new ArgumentNullException("reader");
+
+			_onlyDetectEncoding = false;
+
+			StreamReader sr = reader as StreamReader;
+			if (sr != null)
+			{
+				try
+				{
+					// trigger bom read if needed
+					sr.Peek();
+				}
+				// ReSharper disable EmptyGeneralCatchClause
+				catch (Exception)
+				// ReSharper restore EmptyGeneralCatchClause
+				{
+					// void on purpose
+				}
+				_streamencoding = sr.CurrentEncoding;
+			}
+			else
+			{
+				_streamencoding = null;
+			}
+			_declaredencoding = null;
+
+			Text = reader.ReadToEnd();
 		}
 
 		/// <summary>

@@ -404,6 +404,11 @@
             Gets the document's stream encoding.
             </summary>
         </member>
+        <member name="P:HtmlAgilityPack.HtmlDocument.RawText">
+            <summary>
+            Return Raw response text. Method can be useful for get non xml structured text, i.e. json
+            </summary>
+        </member>
         <member name="M:HtmlAgilityPack.HtmlDocument.GetXmlName(System.String)">
             <summary>
             Gets a valid XML name.
@@ -521,6 +526,20 @@
             <param name="stream">The input stream.</param>
             <param name="encoding">The character encoding to use.</param>
         </member>
+        <member name="M:HtmlAgilityPack.HtmlDocument.LoadRaw(System.IO.Stream,System.Boolean)">
+            <summary>
+            Loads an HTML document from a stream.
+            </summary>
+            <param name="stream">The input stream.</param>
+            <param name="detectEncodingFromByteOrderMarks">Indicates whether to look for byte order marks at the beginning of the stream.</param>
+        </member>
+        <member name="M:HtmlAgilityPack.HtmlDocument.LoadRaw(System.IO.Stream,System.Text.Encoding)">
+            <summary>
+            Loads non HTML document from a stream.
+            </summary>
+            <param name="stream">The input stream.</param>
+            <param name="encoding">The character encoding to use.</param>
+        </member>
         <member name="M:HtmlAgilityPack.HtmlDocument.Load(System.IO.Stream,System.Text.Encoding,System.Boolean)">
             <summary>
             Loads an HTML document from a stream.
@@ -541,6 +560,12 @@
         <member name="M:HtmlAgilityPack.HtmlDocument.Load(System.IO.TextReader)">
             <summary>
             Loads the HTML document from the specified TextReader.
+            </summary>
+            <param name="reader">The TextReader used to feed the HTML data into the document. May not be null.</param>
+        </member>
+        <member name="M:HtmlAgilityPack.HtmlDocument.LoadRaw(System.IO.TextReader)">
+            <summary>
+            Loads non HTML document from the specified TextReader.
             </summary>
             <param name="reader">The TextReader used to feed the HTML data into the document. May not be null.</param>
         </member>
