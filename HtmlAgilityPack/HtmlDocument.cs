@@ -128,11 +128,18 @@ namespace HtmlAgilityPack
 		/// </summary>
 		public bool OptionWriteEmptyNodes;
 
-		#endregion
+        /// <summary>
+        /// The max number of nested child nodes. 
+        /// Added to prevent stackoverflow problem when a page has tens of thousands of opening html tags with no closing tags
+        /// Examples: http://e-compromise.com, http://stuartfamilytree.com
+        /// </summary>
+        public int OptionMaxNestedChildNodes = 100;
 
-		#region Static Members
+        #endregion
 
-		internal static readonly string HtmlExceptionRefNotChild = "Reference node must be a child of this node";
+        #region Static Members
+
+        internal static readonly string HtmlExceptionRefNotChild = "Reference node must be a child of this node";
 
 		internal static readonly string HtmlExceptionUseIdAttributeFalse =
 			"You need to set UseIdAttribute property to true to enable this feature";

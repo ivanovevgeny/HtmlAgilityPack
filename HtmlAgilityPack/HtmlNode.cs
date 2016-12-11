@@ -112,17 +112,17 @@ namespace HtmlAgilityPack
 			//<br> see above
 			ElementsFlags.Add("br", HtmlElementFlag.Empty | HtmlElementFlag.Closed);
 			ElementsFlags.Add("p", HtmlElementFlag.Empty | HtmlElementFlag.Closed);
-		}
+        }
 
-		/// <summary>
-		/// Initializes HtmlNode, providing type, owner and where it exists in a collection
-		/// </summary>
-		/// <param name="type"></param>
-		/// <param name="ownerdocument"></param>
-		/// <param name="index"></param>
-		public HtmlNode(HtmlNodeType type, HtmlDocument ownerdocument, int index)
+        /// <summary>
+        /// Initializes HtmlNode, providing type, owner and where it exists in a collection
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="ownerdocument"></param>
+        /// <param name="index"></param>
+        public HtmlNode(HtmlNodeType type, HtmlDocument ownerdocument, int index)
 		{
-			_nodetype = type;
+            _nodetype = type;
 			_ownerdocument = ownerdocument;
 			_outerstartindex = index;
 
@@ -525,16 +525,23 @@ namespace HtmlAgilityPack
 			}
 		}
 
-		#endregion
+        /// <summary>
+        /// The depth of the node relative to the opening root html element. This value is used to determine if a document has to many nested html nodes which can cause stack overflows
+        /// </summary>
+        public int Depth { get; set; }
 
-		#region Public Methods
+        public int RecursionDepth { get; set; }
 
-		/// <summary>
-		/// Determines if an element node can be kept overlapped.
-		/// </summary>
-		/// <param name="name">The name of the element node to check. May not be <c>null</c>.</param>
-		/// <returns>true if the name is the name of an element node that can be kept overlapped, <c>false</c> otherwise.</returns>
-		public static bool CanOverlapElement(string name)
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Determines if an element node can be kept overlapped.
+        /// </summary>
+        /// <param name="name">The name of the element node to check. May not be <c>null</c>.</param>
+        /// <returns>true if the name is the name of an element node that can be kept overlapped, <c>false</c> otherwise.</returns>
+        public static bool CanOverlapElement(string name)
 		{
 			if (name == null)
 			{
@@ -1401,7 +1408,15 @@ namespace HtmlAgilityPack
 				return;
 			}
 
-			foreach (HtmlNode node in _childnodes)
+            if (OwnerDocument.OptionMaxNestedChildNodes > 0)
+            {
+                RecursionDepth ++;
+                if (RecursionDepth > OwnerDocument.OptionMaxNestedChildNodes)
+                    //throw new Exception(string.Format("Document has more than {0} nested tags. This is likely due to the page not closing tags properly.", OwnerDocument.OptionMaxNestedChildNodes));
+                    return;
+            }
+
+            foreach (HtmlNode node in _childnodes)
 			{
 				node.WriteTo(outText);
 			}
@@ -1413,7 +1428,7 @@ namespace HtmlAgilityPack
 		/// <returns>The saved string.</returns>
 		public string WriteContentTo()
 		{
-			StringWriter sw = new StringWriter();
+            StringWriter sw = new StringWriter();
 			WriteContentTo(sw);
 			sw.Flush();
 			return sw.ToString();
@@ -1425,7 +1440,7 @@ namespace HtmlAgilityPack
 		/// <param name="outText">The TextWriter to which you want to save.</param>
 		public void WriteTo(TextWriter outText)
 		{
-			string html;
+            string html;
 			switch (_nodetype)
 			{
 				case HtmlNodeType.Comment:
@@ -1630,9 +1645,28 @@ namespace HtmlAgilityPack
 			}
 		}
 
-		#endregion
+        /// <summary>
+        /// Sets the parent Html node and properly determines the current node's depth using the parent node's depth.
+        /// </summary>
+        public void SetParent(HtmlNode parent)
+        {
+            if (parent == null)
+                return;
 
-		#region Internal Methods
+            if (OwnerDocument.OptionMaxNestedChildNodes > 0)
+            {
+                Depth = parent.Depth + 1;
+                if (Depth > OwnerDocument.OptionMaxNestedChildNodes)
+                    //throw new Exception(string.Format("Document has more than {0} nested tags. This is likely due to the page not closing tags properly.", OwnerDocument.OptionMaxNestedChildNodes));
+                    return;
+            }
+
+            ParentNode = parent;
+        }
+
+        #endregion
+
+        #region Internal Methods
 
         internal void SetChanged()
         {
@@ -1645,6 +1679,7 @@ namespace HtmlAgilityPack
 
         private void UpdateHtml()
         {
+            RecursionDepth = 0;
             _innerhtml = WriteContentTo();
             _outerhtml = WriteTo();
             _changed = false;

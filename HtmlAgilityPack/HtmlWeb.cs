@@ -22,6 +22,11 @@ namespace HtmlAgilityPack
 	/// </summary>
 	public partial class HtmlWeb
 	{
+	    public HtmlWeb()
+	    {
+	        OptionMaxNestedChildNodes = 0;
+	    }
+
 		#region Delegates
 
 		/// <summary>
@@ -863,17 +868,24 @@ namespace HtmlAgilityPack
 			}
 		}
 
-		#endregion
+        /// <summary>
+        /// The max number of nested child nodes. 
+        /// Added to prevent stackoverflow problem when a page has tens of thousands of opening html tags with no closing tags
+        /// Examples: http://e-compromise.com, http://stuartfamilytree.com
+        /// </summary>
+        public int OptionMaxNestedChildNodes { get; set; }
 
-		#region Public Methods
+        #endregion
 
-		/// <summary>
-		/// Gets the MIME content type for a given path extension.
-		/// </summary>
-		/// <param name="extension">The input path extension.</param>
-		/// <param name="def">The default content type to return if any error occurs.</param>
-		/// <returns>The path extension's MIME content type.</returns>
-		public static string GetContentTypeForExtension(string extension, string def)
+        #region Public Methods
+
+        /// <summary>
+        /// Gets the MIME content type for a given path extension.
+        /// </summary>
+        /// <param name="extension">The input path extension.</param>
+        /// <param name="def">The default content type to return if any error occurs.</param>
+        /// <returns>The path extension's MIME content type.</returns>
+        public static string GetContentTypeForExtension(string extension, string def)
 		{
 		    var helper = new PermissionHelper();
 			if (string.IsNullOrEmpty(extension))
@@ -1113,7 +1125,9 @@ namespace HtmlAgilityPack
 					doc = new HtmlDocument();
 					doc.OptionAutoCloseOnEnd = false;
 					doc.OptionAutoCloseOnEnd = true;
-					if (OverrideEncoding != null)
+                    if (OptionMaxNestedChildNodes > 0)
+                        doc.OptionMaxNestedChildNodes = OptionMaxNestedChildNodes;
+                    if (OverrideEncoding != null)
 						doc.Load(url, OverrideEncoding);
 					else
 						doc.DetectEncodingAndLoad(url, _autoDetectEncoding);
@@ -1154,7 +1168,9 @@ namespace HtmlAgilityPack
 					doc = new HtmlDocument();
 					doc.OptionAutoCloseOnEnd = false;
 					doc.OptionAutoCloseOnEnd = true;
-					doc.DetectEncodingAndLoad(url, _autoDetectEncoding);
+                    if (OptionMaxNestedChildNodes > 0)
+                        doc.OptionMaxNestedChildNodes = OptionMaxNestedChildNodes;
+                    doc.DetectEncodingAndLoad(url, _autoDetectEncoding);
 				}
 				else
 				{
@@ -1494,7 +1510,9 @@ namespace HtmlAgilityPack
 			HtmlDocument doc = new HtmlDocument();
 			doc.OptionAutoCloseOnEnd = false;
 			doc.OptionFixNestedTags = true;
-			_statusCode = Get(uri, method, null, doc, proxy, creds);
+		    if (OptionMaxNestedChildNodes > 0)
+		        doc.OptionMaxNestedChildNodes = OptionMaxNestedChildNodes;
+            _statusCode = Get(uri, method, null, doc, proxy, creds);
 			if (_statusCode == HttpStatusCode.NotModified)
 			{
 				// read cached encoding
