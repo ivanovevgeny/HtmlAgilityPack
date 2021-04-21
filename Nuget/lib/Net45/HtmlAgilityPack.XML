@@ -363,6 +363,11 @@
             Examples: http://e-compromise.com, http://stuartfamilytree.com
             </summary>
         </member>
+        <member name="F:HtmlAgilityPack.HtmlDocument.PreParse">
+            <summary>
+            Occurs before an Parse is executed.
+            </summary>
+        </member>
         <member name="M:HtmlAgilityPack.HtmlDocument.#ctor">
             <summary>
             Creates an instance of an HTML document.
@@ -1507,6 +1512,11 @@
         <member name="F:HtmlAgilityPack.HtmlWeb.PreRequest">
             <summary>
             Occurs before an HTTP request is executed.
+            </summary>
+        </member>
+        <member name="F:HtmlAgilityPack.HtmlWeb.PreParse">
+            <summary>
+            Occurs after get resposnse text and before parse it.
             </summary>
         </member>
         <member name="P:HtmlAgilityPack.HtmlWeb.AutoDetectEncoding">

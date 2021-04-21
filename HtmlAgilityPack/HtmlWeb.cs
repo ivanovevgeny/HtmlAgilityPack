@@ -44,6 +44,7 @@ namespace HtmlAgilityPack
 		/// </summary>
 		public delegate bool PreRequestHandler(HttpWebRequest request);
 
+
 		#endregion
 
 		#region Fields
@@ -76,6 +77,10 @@ namespace HtmlAgilityPack
 		/// </summary>
 		public PreRequestHandler PreRequest;
 
+        /// <summary>
+        /// Occurs after get resposnse text and before parse it.
+        /// </summary>
+        public Func<string, string> PreParse;
 
 		#endregion
 
@@ -1123,6 +1128,7 @@ namespace HtmlAgilityPack
 				if (uri.Scheme == Uri.UriSchemeFile)
 				{
 					doc = new HtmlDocument();
+                    doc.PreParse = PreParse;
 					doc.OptionAutoCloseOnEnd = false;
 					doc.OptionAutoCloseOnEnd = true;
                     if (OptionMaxNestedChildNodes > 0)
@@ -1166,6 +1172,7 @@ namespace HtmlAgilityPack
 				if (uri.Scheme == Uri.UriSchemeFile)
 				{
 					doc = new HtmlDocument();
+                    doc.PreParse = PreParse;
 					doc.OptionAutoCloseOnEnd = false;
 					doc.OptionAutoCloseOnEnd = true;
                     if (OptionMaxNestedChildNodes > 0)
@@ -1508,6 +1515,7 @@ namespace HtmlAgilityPack
 		private HtmlDocument LoadUrl(Uri uri, string method, WebProxy proxy, NetworkCredential creds)
 		{
 			HtmlDocument doc = new HtmlDocument();
+            doc.PreParse = PreParse;
 			doc.OptionAutoCloseOnEnd = false;
 			doc.OptionFixNestedTags = true;
 		    if (OptionMaxNestedChildNodes > 0)

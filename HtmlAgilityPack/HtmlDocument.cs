@@ -135,6 +135,12 @@ namespace HtmlAgilityPack
         /// </summary>
         public int OptionMaxNestedChildNodes = 100;
 
+        /// <summary>
+        /// Occurs before an Parse is executed.
+        /// </summary>
+        //internal PreParseHandler PreParse;
+        internal Func<string, string> PreParse;
+
         #endregion
 
         #region Static Members
@@ -470,6 +476,10 @@ namespace HtmlAgilityPack
 			_declaredencoding = null;
 
 			Text = reader.ReadToEnd();
+            
+            if (PreParse != null)
+                Text = PreParse(Text);
+
 			_documentnode = CreateNode(HtmlNodeType.Document, 0);
 
 			// this is almost a hack, but it allows us not to muck with the original parsing code
@@ -646,6 +656,10 @@ namespace HtmlAgilityPack
 			_declaredencoding = null;
 
 			Text = reader.ReadToEnd();
+
+            if (PreParse != null)
+                Text = PreParse(Text);
+
 			_documentnode = CreateNode(HtmlNodeType.Document, 0);
 			Parse();
 
@@ -716,7 +730,10 @@ namespace HtmlAgilityPack
 			_declaredencoding = null;
 
 			Text = reader.ReadToEnd();
-		}
+
+            if (PreParse != null)
+                Text = PreParse(Text);
+        }
 
 		/// <summary>
 		/// Loads the HTML document from the specified string.
