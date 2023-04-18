@@ -368,6 +368,11 @@
             Occurs before an Parse is executed.
             </summary>
         </member>
+        <member name="F:HtmlAgilityPack.HtmlDocument.MaxDocumentSize">
+            <summary>
+            Max document size (bytes)
+            </summary>
+        </member>
         <member name="M:HtmlAgilityPack.HtmlDocument.#ctor">
             <summary>
             Creates an instance of an HTML document.
@@ -1517,6 +1522,16 @@
         <member name="F:HtmlAgilityPack.HtmlWeb.PreParse">
             <summary>
             Occurs after get resposnse text and before parse it.
+            </summary>
+        </member>
+        <member name="F:HtmlAgilityPack.HtmlWeb.MaxDocumentSize">
+            <summary>
+            Max document size (bytes). The default value is 30000000, which is approximately 28.6 MB.
+            </summary>
+        </member>
+        <member name="P:HtmlAgilityPack.HtmlWeb.MaxDocumentSizeReached">
+            <summary>
+            True if MaxDocumentSize reached
             </summary>
         </member>
         <member name="P:HtmlAgilityPack.HtmlWeb.AutoDetectEncoding">

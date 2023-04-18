@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Net;
 using System.Security;
 using System.Security.Permissions;
@@ -82,6 +81,16 @@ namespace HtmlAgilityPack
         /// </summary>
         public Func<string, string> PreParse;
 
+        /// <summary>
+		/// Max document size (bytes). The default value is 30000000, which is approximately 28.6 MB.
+		/// </summary>
+        public long MaxDocumentSize = 30000000; // 28.6 MB - equals default requestLimit in IIS
+
+        /// <summary>
+		/// True if MaxDocumentSize reached
+		/// </summary>
+        public bool MaxDocumentSizeReached { get; private set; }
+		
 		#endregion
 
 		#region Static Members
@@ -1129,6 +1138,7 @@ namespace HtmlAgilityPack
 				{
 					doc = new HtmlDocument();
                     doc.PreParse = PreParse;
+					doc.MaxDocumentSize = MaxDocumentSize;
 					doc.OptionAutoCloseOnEnd = false;
 					doc.OptionAutoCloseOnEnd = true;
                     if (OptionMaxNestedChildNodes > 0)
@@ -1173,6 +1183,7 @@ namespace HtmlAgilityPack
 				{
 					doc = new HtmlDocument();
                     doc.PreParse = PreParse;
+                    doc.MaxDocumentSize = MaxDocumentSize;
 					doc.OptionAutoCloseOnEnd = false;
 					doc.OptionAutoCloseOnEnd = true;
                     if (OptionMaxNestedChildNodes > 0)
@@ -1282,6 +1293,7 @@ namespace HtmlAgilityPack
 			string cachePath = null;
 			HttpWebRequest req;
 			bool oldFile = false;
+            MaxDocumentSizeReached = false;
           
 			req = WebRequest.Create(uri) as HttpWebRequest;
             req.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip;
@@ -1468,12 +1480,15 @@ namespace HtmlAgilityPack
 
                     }
                 }
+
+                MaxDocumentSizeReached = doc.MaxDocumentSizeReached;
+
 				resp.Close();
 			}
 			return resp.StatusCode;
 		}
 
-		private string GetCacheHeader(Uri requestUri, string name, string def)
+        private string GetCacheHeader(Uri requestUri, string name, string def)
 		{
 			// note: some headers are collection (ex: www-authenticate)
 			// we don't handle that here
@@ -1516,6 +1531,7 @@ namespace HtmlAgilityPack
 		{
 			HtmlDocument doc = new HtmlDocument();
             doc.PreParse = PreParse;
+            doc.MaxDocumentSize = MaxDocumentSize;
 			doc.OptionAutoCloseOnEnd = false;
 			doc.OptionFixNestedTags = true;
 		    if (OptionMaxNestedChildNodes > 0)

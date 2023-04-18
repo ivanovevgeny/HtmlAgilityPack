@@ -37,6 +37,7 @@ namespace HtmlAgilityPack
 		private ParseState _state;
 		private Encoding _streamencoding;
 		internal string Text;
+        internal bool MaxDocumentSizeReached;
 
 		// public props
 
@@ -140,6 +141,11 @@ namespace HtmlAgilityPack
         /// </summary>
         //internal PreParseHandler PreParse;
         internal Func<string, string> PreParse;
+
+        /// <summary>
+		/// Max document size (bytes)
+		/// </summary>
+        internal long MaxDocumentSize = 0;
 
         #endregion
 
@@ -475,8 +481,11 @@ namespace HtmlAgilityPack
 			}
 			_declaredencoding = null;
 
-			Text = reader.ReadToEnd();
-            
+			FillTextFromReader(reader);
+
+            if (MaxDocumentSizeReached)
+                return null;
+
             if (PreParse != null)
                 Text = PreParse(Text);
 
@@ -494,11 +503,37 @@ namespace HtmlAgilityPack
 			return null;
 		}
 
+        private void FillTextFromReader(TextReader reader)
+        {
+            //Text = reader.ReadToEnd();
+
+            MaxDocumentSizeReached = false;
+
+            char[] buffer = new char[4096];
+            StringBuilder stringBuilder = new StringBuilder(4096);
+            int charCount;
+            long bytes = 0;
+            Encoding enc = _streamencoding ?? Encoding.UTF8;
+            while ((charCount = reader.Read(buffer, 0, buffer.Length)) != 0)
+            {
+                if (MaxDocumentSize > 0)
+                {
+                    bytes += enc.GetByteCount(buffer, 0, charCount);
+                    if (bytes > MaxDocumentSize)
+                    {
+                        MaxDocumentSizeReached = true;
+                        break;
+                    }
+                }
+
+                stringBuilder.Append(buffer, 0, charCount);
+            }
+
+            Text = stringBuilder.ToString();
+        }
 
 
-		
-
-		/// <summary>
+        /// <summary>
 		/// Detects the encoding of an HTML text.
 		/// </summary>
 		/// <param name="html">The input html text. May not be null.</param>
@@ -655,7 +690,10 @@ namespace HtmlAgilityPack
 			}
 			_declaredencoding = null;
 
-			Text = reader.ReadToEnd();
+            FillTextFromReader(reader);
+
+            if (MaxDocumentSizeReached) 
+                return;
 
             if (PreParse != null)
                 Text = PreParse(Text);
@@ -729,7 +767,10 @@ namespace HtmlAgilityPack
 			}
 			_declaredencoding = null;
 
-			Text = reader.ReadToEnd();
+            FillTextFromReader(reader);
+
+            if (MaxDocumentSizeReached)
+                return;
 
             if (PreParse != null)
                 Text = PreParse(Text);

@@ -9,13 +9,15 @@ namespace HtmlAgilityPack.Tests
 	public class HtmlDocumentTests
 	{
 		private string _contentDirectory;
-		
+        private HtmlDocument _doc;
 	
 
-		[TestFixtureSetUp]
+		[SetUp]
 		public void Setup()
 		{
 			_contentDirectory = Directory.GetCurrentDirectory() + "\\files\\";
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+            ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true; // иначе не работает загрузка некоторых https
 		}
 
 		private HtmlDocument GetMshomeDocument()
@@ -185,5 +187,54 @@ namespace HtmlAgilityPack.Tests
 			Assert.AreSame(newNode.PreviousSibling, toReplacePrevSibling);
 			Assert.AreSame(toReplaceNextSibling, toReplace.NextSibling);
 		}
-	}
+
+        [Test]
+        public void TestLoadLargeShouldReturnFlag()
+        {
+            var web = new HtmlWeb
+            {
+                PreRequest = OnPreRequest,
+                PostResponse = OnAfterResponse,
+                PreHandleDocument =  OnPreHandleDocument
+            };
+            web.Load("https://valeriya-ivanovo.ru/catalog/muzhskoe_1/futbolki_3/14005/");
+            Assert.True(web.MaxDocumentSizeReached);
+            Assert.AreEqual(web.StatusCode, HttpStatusCode.OK);
+            Assert.True(string.IsNullOrEmpty(_doc.DocumentNode?.InnerHtml));
+            Assert.False(string.IsNullOrEmpty(_doc.RawText));
+        }
+
+        [Test]
+        public void TestLoadOrdinary_ShouldNotReturnFlag()
+        {
+            var web = new HtmlWeb
+            {
+                PreRequest = OnPreRequest,
+                PostResponse = OnAfterResponse,
+                PreHandleDocument =  OnPreHandleDocument
+            };
+            web.Load("https://www.wikipedia.org/");
+            Assert.False(web.MaxDocumentSizeReached);
+            Assert.AreEqual(web.StatusCode, HttpStatusCode.OK);
+            Assert.False(string.IsNullOrEmpty(_doc.DocumentNode?.InnerHtml));
+            Assert.False(string.IsNullOrEmpty(_doc.RawText));
+        }
+
+        private void OnAfterResponse(HttpWebRequest request, HttpWebResponse response)
+        {
+            var len = response.ContentLength;
+        }
+
+        private bool OnPreRequest(HttpWebRequest request)
+        {
+            request.Timeout = 100000;
+            request.ReadWriteTimeout = 10000;
+			return true;
+        }
+
+        private void OnPreHandleDocument(HtmlDocument document)
+        {
+            _doc = document;
+        }
+    }
 }
